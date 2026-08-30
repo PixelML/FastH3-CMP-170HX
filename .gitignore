@@ -1,0 +1,6 @@
+outputs/
+*.safetensors
+__pycache__/
+.venv/
+*.mp4
+*.jsonl.bak
