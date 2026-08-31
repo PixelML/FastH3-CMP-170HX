@@ -9,6 +9,10 @@ Target hardware, generic labeling: 4× NVIDIA CMP 170HX, GA100, SM 8.0,
 64 GiB per card, 180 W per card. No private hostnames, IPs, UUIDs, or PCI
 maps are recorded in this repo.
 
+Verification dates: fetch-time checks 2026-08-30; refreshed against
+upstream sources **as of 2026-08-31** (see MANIFEST.md re-verification
+block). No claim below is measured on target hardware.
+
 ## Lane A — FastVideo BF16 baseline
 
 | # | Claim | Label |
@@ -23,11 +27,18 @@ maps are recorded in this repo.
 | A8 | Training contract SP=4 matches a 4-card inference topology | inferred |
 | A9 | 5-point sigma grid → exactly 4 transformer forwards per sample (relevant for latency accounting) | externally reported |
 | A10 | The triton VSA route actually runs correctly, and at usable speed, on SM 8.0 | **untested** — this is the single largest Lane A risk |
+| A11 | FastVideo main HEAD as of 2026-08-31 is `620bc36dc44fab81e6c266445b61c45d6a8b18ad`; the non-Blackwell flags (`--vsa-kernel`, `--fa4`, `--replicated-dit`) are still present in `examples/inference/basic/basic_fasth3.py` at that main | verified against source (2026-08-31) |
+| A12 | In `fastvideo-kernel`'s `build.sh` at current main, the ThunderKittens kernels compile **only for SM90 (Hopper)**; all other archs — including SM 8.0/Ampere — take the non-TK build path, which the script explicitly notes is fine for non-SM90/ROCm targets. Arch detection uses `TORCH_CUDA_ARCH_LIST` or a torch probe; SM 8.0 maps to `CMAKE_CUDA_ARCHITECTURES=80` | verified against source (2026-08-31) |
+| A13 | The `fasth3` extra in FastVideo's `pyproject.toml` at current main is `["flash-attn-4", "fastvideo-kernel==0.3.5; sys_platform == 'linux'"]`. FA4 is explicitly disabled on this hardware via `--no-fa4`; whether `flash-attn-4` supports SM 8.0 at all remains **unverified/untested** | verified against source for the pin (2026-08-31); **untested** for SM 8.0 support |
+| A14 | A code search over the FastVideo repository finds exactly one `sm80` reference: `fastvideo-kernel/csrc/turbodiffusion/gemm/kernel.hpp`, unrelated to VSA. The Triton VSA kernel is Python/Triton, so no SM 8.0 CUDA kernel is required for the A3 route | verified against source for the search result (2026-08-31); inferred for the "no SM 8.0 CUDA kernel required" conclusion |
 
 Reading: Lane A is *compatible on paper* — every known blocker has a
 documented flag — but nothing above A10 has been demonstrated on CMP
 hardware. Triton generates PTX for the local arch at run time, so A10 is
-plausible but unproven (inferred, not measured).
+plausible but unproven (inferred, not measured). The 2026-08-31 refresh
+(A11–A14) narrows the build-path question — the kernels build routes SM 8.0
+away from ThunderKittens by design, and no VSA-related SM 8.0 CUDA kernel
+exists to fail — but does not change A10's untested status.
 
 ## Lane B — ComfyUI INT8 convrot
 

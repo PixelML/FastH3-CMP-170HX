@@ -6,10 +6,13 @@ public hardware labeling only; no private infrastructure identifiers appear
 in this repository).
 
 **Tracking issue:** <https://github.com/seanphan/pixelml/issues/54>
-(status: **WAITING_RESOURCE**)
+(status: **WAITING_LICENSE + WAITING_RESOURCE**)
 
-**Current status: WAITING_RESOURCE.** This repository is documentation and
-planning only until node access is granted.
+**Current status: WAITING_LICENSE + WAITING_RESOURCE.** This repository is
+documentation and planning only until both gates clear: written
+jurisdiction confirmation for the MiniMax H3 Community License territory
+closure, and node access. Pins re-verified against upstream sources on
+2026-08-31 (see [MANIFEST.md](MANIFEST.md)).
 
 ## Why this repo exists
 

@@ -22,6 +22,7 @@ repo, never from the operator's environment.
 |---|---|
 | A | FastVideo @ commit `48a047c05ff4138f20cfa33351499c6ec5945f5d`; checkpoint `FastVideo/FastVideo-FastH3-4-step-Preview-v1-VSA-DataFree` @ `b65818d41939b5085451074fe8ca8b799f8d4921` |
 | B | ComfyUI @ `0.31.0` + PR #15958 head `10febb01d7be73d1491cf5e5347b5ab8b6c2c09e`; comfy-kitchen @ merge `dae00a13d458876570804523ae045a487fd92961`; checkpoint files + sha256 from [MANIFEST.md](../MANIFEST.md) |
+| both | Storage/cache env pinned to `/library/models/fasth3/` (see Storage plan); exported before any harness step runs |
 
 The harness records the resolved environment (component versions, commit
 heads, GPU name/count/driver as reported by standard tooling) into the run
@@ -89,9 +90,18 @@ Protocol per case, per lane:
 
 ## Storage plan
 
-- Weights live on the **shared model storage volume**; never the system
-  root, never inside this repo working tree. `*.safetensors` is git-ignored
-  here as a second line of defense.
+- Weights and caches live under `/library/models/fasth3/` — `/library/models`
+  is the canonical model library mount. Never the system root disk, never
+  `/tmp`, never the home directory, never inside this repo working tree.
+  `*.safetensors` is git-ignored here as a second line of defense.
+- HF cache environment is pinned to the same location before any step runs:
+
+  ```bash
+  export HF_HOME=/library/models/fasth3/hf
+  export HF_HUB_CACHE=/library/models/fasth3/hf/hub
+  export TORCH_HOME=/library/models/fasth3/torch
+  ```
+
 - Every downloaded file is verified against the MANIFEST sha256 before
   first use; verification state is recorded once, not per-run.
 - Outputs land in `outputs/` (git-ignored); only sanitized summaries,
@@ -102,6 +112,9 @@ Protocol per case, per lane:
 The harness runs in phases; each phase writes a checkpoint record
 (timestamp, resolved pins, pass/fail) before the next may start:
 
+0. **storage precheck** — before anything else: `/library` is mounted
+   read-write, has **≥ 190 GB free**, and the system root disk has
+   **> 10% free**. Any failure = stop; no download may be queued.
 1. **pin-verify** — every `externally reported` pin re-verified against
    source; any drift = stop.
 2. **license gate** — Applicable Territory of the MiniMax H3 Community
@@ -118,16 +131,18 @@ The harness runs in phases; each phase writes a checkpoint record
 
 1. License Applicable Territory unconfirmed for the deployment
    jurisdiction (gate 2 refused or unanswerable).
-2. Any pin drift: upstream revision/PR head/merge commit changed, or a
+2. Phase-0 storage precheck fails: `/library` not mounted read-write,
+   < 190 GB free, or root disk ≤ 10% free.
+3. Any pin drift: upstream revision/PR head/merge commit changed, or a
    re-read license text differs from the MANIFEST summary.
-3. Any downloaded file fails sha256/byte-count verification.
-4. Fit-gate numbers exceeded at runtime: OOM, or per-card VRAM demand over
+4. Any downloaded file fails sha256/byte-count verification.
+5. Fit-gate numbers exceeded at runtime: OOM, or per-card VRAM demand over
    the 85% working threshold in a way the fit doc did not anticipate.
-5. Per-card power sustained above the 180 W cap or thermals outside the
+6. Per-card power sustained above the 180 W cap or thermals outside the
    node's operating envelope.
-6. Repeated nondeterministic failures of the lane's runtime (e.g. the
+7. Repeated nondeterministic failures of the lane's runtime (e.g. the
    draft ComfyUI PR head breaking) — record, stop, re-pin.
-7. Any evidence that output media would be published without the
+8. Any evidence that output media would be published without the
    AI-generation identifier required by license Section III.3(b).
-8. Any log/output that cannot be sanitized confidently is treated as
+9. Any log/output that cannot be sanitized confidently is treated as
    private and stops publication, not the run.

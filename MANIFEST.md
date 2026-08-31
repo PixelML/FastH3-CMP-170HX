@@ -3,10 +3,30 @@
 Every pin below is labeled either **externally reported** (taken from a
 model card, issue, or other secondary source and not independently checked
 against the upstream source) or **verified against source at fetch time**
-(checked against the upstream source listing / API on 2026-08-30). Pins
-that are only *externally reported* **must be re-verified against source
-before being used as a gate condition**. No credentials, tokens, or
-private endpoints appear in this file.
+(checked against the upstream source listing / API on 2026-08-30,
+re-verified 2026-08-31 — see the block below). Pins that are only
+*externally reported* **must be re-verified against source before being
+used as a gate condition**. No credentials, tokens, or private endpoints
+appear in this file.
+
+## 2026-08-31 re-verification
+
+Re-checked against upstream sources on 2026-08-31 (repo/doc refresh only;
+no downloads, no runs):
+
+- FastVideo main HEAD has moved to `620bc36dc44fab81e6c266445b61c45d6a8b18ad`.
+  The Lane A inference flags (`--vsa-kernel`, `--fa4`, `--replicated-dit`)
+  are still present in `examples/inference/basic/basic_fasth3.py` at that
+  main.
+- Training-side contract commit `48a047c05ff4138f20cfa33351499c6ec5945f5d`
+  still resolves (committed 2026-08-23).
+- HF checkpoint pin unchanged: `FastVideo/FastVideo-FastH3-4-step-Preview-v1-VSA-DataFree`
+  main = `b65818d41939b5085451074fe8ca8b799f8d4921`.
+- ComfyUI PR #15958 is still **draft**; comfy-kitchen PR #117 is still
+  **merged**.
+
+All pins below keep their original labels and byte counts; nothing upstream
+relevant to a gate has drifted as of this re-verification.
 
 ## Lane A — BF16 baseline checkpoint
 

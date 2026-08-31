@@ -75,6 +75,21 @@ well inside typical node budgets, but per-card power is a captured metric
 in the harness so the 180 W cap can be checked against actuals (see
 [docs/harness.md](harness.md)).
 
+## Storage location (binding)
+
+All weights and caches MUST live under `/library/models` (the canonical
+model library mount), in a FastH3-specific subdirectory
+(`/library/models/fasth3/`). They must never be placed under this repo
+working tree, the home directory, `/tmp`, or the system root disk. This is
+a storage-policy requirement, not a preference.
+
+Estimated total footprint for the pinned artifacts of both lanes is
+**≈ 190 GB** (Lane A ≈ 137.71 GiB + Lane B ≈ 24.28 GiB, plus an allowance
+for the unpinned text-encoder/overhead components — estimate). The
+harness's phase-0 storage precheck (see
+[docs/harness.md](harness.md)) verifies at least this much free space
+before any download may start.
+
 ## Fit gate (binding)
 
 **No download has occurred.** Before any download is allowed:
@@ -87,5 +102,8 @@ in the harness so the 180 W cap can be checked against actuals (see
 3. Unpinned components for the chosen lane identified and sized.
 4. The numbers in this document refreshed, and the 85%-of-VRAM working
    threshold checked.
+5. Storage precheck passed (phase-0 in [docs/harness.md](harness.md)):
+   `/library` mounted read-write, ≥ 190 GB free, and the system root disk
+   > 10% free.
 
-Until all four hold, the fit gate remains **closed**.
+Until all five hold, the fit gate remains **closed**.
