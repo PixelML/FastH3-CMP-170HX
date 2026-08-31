@@ -5,8 +5,7 @@ NVIDIA CMP 170HX node (SM 8.0, 64 GiB per card, 180 W per card — generic,
 public hardware labeling only; no private infrastructure identifiers appear
 in this repository).
 
-**Tracking issue:** <https://github.com/seanphan/pixelml/issues/54>
-(status: **WAITING_LICENSE + WAITING_RESOURCE**)
+**Internal status:** **WAITING_LICENSE + WAITING_RESOURCE**
 
 **Current status: WAITING_LICENSE + WAITING_RESOURCE.** This repository is
 documentation and planning only until both gates clear: written
@@ -66,5 +65,5 @@ this as a gate it must not assume away — see
 been downloaded, no GPU run has been performed, and no packages have been
 installed.** Everything here is static analysis of externally reported
 facts. The next physical step (download + smoke run) is blocked on
-resource availability (tracking issue above) and on the license/fit gates
+resource availability and on the license/fit gates
 in [docs/harness.md](docs/harness.md).
